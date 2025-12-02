@@ -5,10 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2025-12-02
+
+### Added
+
+- **Auto-inject admin UI components**: When `useAdmin: true`, the plugin now automatically injects login and logout components into the admin panel, eliminating the need for manual component configuration
+- New `autoInjectAdminUI` config option (defaults to `true`) - set to `false` to provide custom components
+- New internal components:
+  - `DefaultSSOLoginButton` - Auto-configured SSO login button for admin panel
+  - `DefaultSSOLogoutRedirect` - Auto-configured logout redirect component
+- New package exports:
+  - `payload-auth-cookie/admin/DefaultSSOLoginButton`
+  - `payload-auth-cookie/admin/DefaultSSOLogoutRedirect`
+
+### Changed
+
+- Plugin now automatically configures `admin.components.afterLogin` and `admin.components.views.logout` when `useAdmin: true`
+- Components dynamically compute API routes using Payload's `useConfig()` hook
+
+### Migration
+
+Users upgrading from 0.0.2 can remove manual admin component configuration:
+
+```diff
+// payload.config.ts
+export default buildConfig({
+  admin: {
+    components: {
+-     afterLogin: ['@/components/SSOLoginButton'],
+-     views: {
+-       logout: {
+-         Component: '@/components/SSOAdminLogout',
+-         path: '/logout',
+-       },
+-     },
+    },
+  },
+  plugins: [
+    authPlugin({
+      name: 'admin',
+      useAdmin: true,
++     // Login/logout components are now auto-injected!
+      usersCollectionSlug: 'adminUsers',
+      sso: ssoConfig,
+    }),
+  ],
+})
+```
+
+To keep using custom components, set `autoInjectAdminUI: false`.
+
 ## [0.0.2] - 2025-12-02
 
 - First github action released package
-- Added github registry in addition to npmmjs
+- Added github registry in addition to npmjs
 
 ## [0.0.1] - 2025-12-02
 

@@ -1,6 +1,6 @@
 {
   "name": "payload-auth-cookie",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Payload CMS authentication plugin for Cookies from external SSO",
   "author": "Mark Kropf (https://markkropf.com/)",
   "homepage": "https://github.com/MarkKropf/payload-auth-cookie",
@@ -33,6 +33,16 @@
       "import": "./src/collection/index.ts",
       "types": "./src/collection/index.ts",
       "default": "./src/collection/index.ts"
+    },
+    "./admin/DefaultSSOLoginButton": {
+      "import": "./src/admin/DefaultSSOLoginButton.tsx",
+      "types": "./src/admin/DefaultSSOLoginButton.tsx",
+      "default": "./src/admin/DefaultSSOLoginButton.tsx"
+    },
+    "./admin/DefaultSSOLogoutRedirect": {
+      "import": "./src/admin/DefaultSSOLogoutRedirect.tsx",
+      "types": "./src/admin/DefaultSSOLogoutRedirect.tsx",
+      "default": "./src/admin/DefaultSSOLogoutRedirect.tsx"
     }
   },
   "main": "./src/index.ts",
@@ -129,6 +139,16 @@
         "import": "./dist/collection/index.js",
         "types": "./dist/collection/index.d.ts",
         "default": "./dist/collection/index.js"
+      },
+      "./admin/DefaultSSOLoginButton": {
+        "import": "./dist/admin/DefaultSSOLoginButton.js",
+        "types": "./dist/admin/DefaultSSOLoginButton.d.ts",
+        "default": "./dist/admin/DefaultSSOLoginButton.js"
+      },
+      "./admin/DefaultSSOLogoutRedirect": {
+        "import": "./dist/admin/DefaultSSOLogoutRedirect.js",
+        "types": "./dist/admin/DefaultSSOLogoutRedirect.d.ts",
+        "default": "./dist/admin/DefaultSSOLogoutRedirect.js"
       }
     },
     "main": "./dist/index.js",

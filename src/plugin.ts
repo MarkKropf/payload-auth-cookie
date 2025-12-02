@@ -7,6 +7,9 @@ import { createCookieAuthStrategy } from './lib/strategy.js'
 import { validateSSOConfig } from './lib/sso-session.js'
 import { setAdminAuthCollectionSlug } from './utilities/getAdminAuthCollection.js'
 
+const DEFAULT_LOGIN_COMPONENT_PATH = 'payload-auth-cookie/admin/DefaultSSOLoginButton'
+const DEFAULT_LOGOUT_COMPONENT_PATH = 'payload-auth-cookie/admin/DefaultSSOLogoutRedirect'
+
 /**
  * Payload authentication plugin for external SSO cookie-based authentication
  *
@@ -113,6 +116,44 @@ export function authPlugin(pluginConfig: AuthPluginConfig) {
       adminConfig = {
         ...incomingConfig.admin,
         user: config.usersCollectionSlug,
+      }
+
+      if (config.autoInjectAdminUI !== false) {
+        const loginPath = DEFAULT_LOGIN_COMPONENT_PATH
+        const logoutPath = DEFAULT_LOGOUT_COMPONENT_PATH
+
+        adminConfig.components = adminConfig.components ?? {}
+
+        const existingAfterLogin = adminConfig.components.afterLogin ?? []
+        const hasOurLogin = existingAfterLogin.some((entry: unknown) => {
+          const p = typeof entry === 'string' ? entry : (entry as { path?: string })?.path
+          return p === loginPath
+        })
+
+        if (!hasOurLogin) {
+          adminConfig.components.afterLogin = [
+            ...existingAfterLogin,
+            {
+              path: loginPath,
+              clientProps: {
+                namespace: config.name,
+              },
+            },
+          ]
+        }
+
+        adminConfig.components.views = adminConfig.components.views ?? {}
+        if (!adminConfig.components.views.logout) {
+          adminConfig.components.views.logout = {
+            Component: {
+              path: logoutPath,
+              clientProps: {
+                namespace: config.name,
+              },
+            },
+            path: '/logout',
+          }
+        }
       }
     }
 

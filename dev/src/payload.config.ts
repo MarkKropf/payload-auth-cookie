@@ -42,12 +42,10 @@ export default buildConfig({
     components: {
       beforeLogin: ['@/components/BeforeLogin'],
       beforeDashboard: ['@/components/BeforeDashboard'],
-      afterLogin: ['@/components/SSOLoginButton'],
     },
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    user: AdminUsers.slug,
     livePreview: {
       breakpoints: [
         {

@@ -115,6 +115,14 @@ export interface AuthPluginConfig {
   useAdmin?: boolean
 
   /**
+   * Automatically inject default admin login/logout UI components.
+   * Only applies when useAdmin is true.
+   * Set to false to provide your own components.
+   * @default true
+   */
+  autoInjectAdminUI?: boolean
+
+  /**
    * Whether to allow new user sign-ups when a user authenticates but doesn't exist in the collection
    * @default false
    */
