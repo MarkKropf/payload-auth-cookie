@@ -1,0 +1,58 @@
+import { describe, it, expect } from 'vitest';
+import { getExpiredPayloadCookies } from './session.js';
+describe('getExpiredPayloadCookies', ()=>{
+    const mockPayload = {
+        config: {
+            cookiePrefix: 'payload',
+            admin: {
+                user: 'users'
+            }
+        },
+        collections: {
+            users: {
+                config: {
+                    auth: {
+                        cookies: {
+                            secure: true,
+                            sameSite: 'None',
+                            domain: 'example.com'
+                        }
+                    }
+                }
+            },
+            'other-users': {
+                config: {
+                    auth: {
+                    }
+                }
+            }
+        }
+    };
+    it('should generate expired cookie for admin collection', ()=>{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cookies = getExpiredPayloadCookies(mockPayload, 'users');
+        expect(cookies).toHaveLength(1);
+        expect(cookies[0]).toBe('payload-token=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure; Domain=example.com');
+    });
+    it('should generate expired cookie for non-admin collection', ()=>{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cookies = getExpiredPayloadCookies(mockPayload, 'other-users');
+        expect(cookies).toHaveLength(1);
+        // Should use default Lax and no Secure (unless prod) and no Domain
+        // Note: process.env.NODE_ENV is 'test' usually
+        expect(cookies[0]).toContain('payload-token-other-users=; HttpOnly; Path=/; Max-Age=0');
+        expect(cookies[0]).toContain('SameSite=Lax');
+    // Secure might depend on NODE_ENV
+    });
+    it('should throw error if collection has no auth', ()=>{
+        const payloadNoAuth = {
+            collections: {
+                'no-auth': {
+                    config: {}
+                }
+            }
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect(()=>getExpiredPayloadCookies(payloadNoAuth, 'no-auth')).toThrow('Collection does not have auth enabled');
+    });
+});

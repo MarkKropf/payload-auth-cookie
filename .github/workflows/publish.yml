@@ -1,0 +1,108 @@
+name: Publish to npm and GitHub Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'dev/**'
+      - 'examples/**'
+      - '.github/**'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required for creating releases
+      packages: write # Required for GitHub Packages
+      id-token: write # Required for npm provenance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for version-check to search commits
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test:int
+        env:
+          NODE_ENV: test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Check if version exists on npm
+        id: check
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          if npm view $PACKAGE_NAME@$PACKAGE_VERSION version 2>/dev/null; then
+            echo "Version $PACKAGE_VERSION already exists on npm"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $PACKAGE_VERSION does not exist on npm, will publish"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update npm for Trusted Publishers
+        if: steps.check.outputs.should_publish == 'true'
+        run: npm install -g npm@latest
+
+      - name: Publish to npm
+        if: steps.check.outputs.should_publish == 'true'
+        run: pnpm publish --no-git-checks --provenance --access public
+
+      - name: Modify package.json for GitHub Packages
+        if: steps.check.outputs.should_publish == 'true'
+        run: |
+          # Create a scoped version of the package for GitHub Packages
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.name = '@markkropf/payload-auth-cookie';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Setup Node.js for GitHub Packages
+        if: steps.check.outputs.should_publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@markkropf'
+
+      - name: Publish to GitHub Packages
+        if: steps.check.outputs.should_publish == 'true'
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.should_publish == 'true'
+        run: |
+          gh release create "v${{ steps.check.outputs.version }}" \
+            --title "v${{ steps.check.outputs.version }}" \
+            --notes "Release ${{ steps.check.outputs.version }}
+
+          See [CHANGELOG.md](CHANGELOG.md) for details."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
