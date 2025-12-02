@@ -92,7 +92,8 @@ jobs:
         run: pnpm exec playwright install chromium
 
       - name: Run database migrations
-        run: pnpm --filter dev payload migrate
+        run: pnpm payload migrate
+        working-directory: dev
         env:
           DATABASE_URI: postgresql://postgres:postgres@localhost:5432/payload_test
           PAYLOAD_SECRET: test-secret-for-ci-only
