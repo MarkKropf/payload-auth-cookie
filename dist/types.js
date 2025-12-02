@@ -1,3 +1,0 @@
-/**
- * Plugin function type
- */ export { };
