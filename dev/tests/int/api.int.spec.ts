@@ -24,7 +24,7 @@ describe('API', () => {
     }
 
     const users = await payload.find({
-      collection: 'admin-users',
+      collection: 'adminUsers',
     })
     expect(users).toBeDefined()
   })
@@ -37,7 +37,7 @@ describe('API', () => {
     }
 
     const users = await payload.find({
-      collection: 'app-users',
+      collection: 'appUsers',
     })
     expect(users).toBeDefined()
   })

@@ -1,12 +1,15 @@
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+import path from 'path'
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(import.meta.dirname, 'dev', '.env.local') })
+
+if (!process.env.PAYLOAD_SECRET) {
+  process.env.PAYLOAD_SECRET = 'test-secret-for-e2e'
+}
+if (!process.env.SSO_JWT_SECRET) {
+  process.env.SSO_JWT_SECRET = 'test-jwt-secret-for-e2e'
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -40,6 +43,7 @@ export default defineConfig({
   },
   webServer: {
     command: 'pnpm dev',
+    cwd: './dev',
     reuseExistingServer: true,
     url: 'http://127.0.0.1:3000/admin',
     timeout: 120 * 1000,
