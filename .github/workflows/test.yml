@@ -89,7 +89,14 @@ jobs:
         run: pnpm install
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: pnpm exec playwright install chromium
+
+      - name: Run database migrations
+        run: pnpm --filter dev payload migrate
+        env:
+          DATABASE_URI: postgresql://postgres:postgres@localhost:5432/payload_test
+          PAYLOAD_SECRET: test-secret-for-ci-only
+          SSO_JWT_SECRET: test-jwt-secret-for-ci
 
       - name: Run E2E tests
         run: pnpm test:e2e
@@ -97,6 +104,7 @@ jobs:
           NODE_ENV: test
           DATABASE_URI: postgresql://postgres:postgres@localhost:5432/payload_test
           PAYLOAD_SECRET: test-secret-for-ci-only
+          SSO_JWT_SECRET: test-jwt-secret-for-ci
 
   build:
     runs-on: ubuntu-latest

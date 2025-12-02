@@ -42,5 +42,8 @@ export default defineConfig({
     command: 'pnpm dev',
     reuseExistingServer: true,
     url: 'http://127.0.0.1:3000/admin',
+    timeout: 120 * 1000,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 })
