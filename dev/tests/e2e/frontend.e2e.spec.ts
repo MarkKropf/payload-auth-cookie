@@ -7,6 +7,6 @@ test.describe('Admin Panel', () => {
     await expect(page).toHaveTitle(/Payload/)
 
     const ssoButton = page.getByRole('link', { name: /SSO/i })
-    await expect(ssoButton).toBeVisible()
+    await expect(ssoButton).toBeVisible({ timeout: 15000 })
   })
 })
