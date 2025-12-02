@@ -1,20 +1,19 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-test.describe('Frontend', () => {
-  let page: Page
+test.describe('Admin Panel', () => {
+  test('can access admin login page', async ({ page }) => {
+    await page.goto('http://127.0.0.1:3000/admin')
 
-  test.beforeAll(async ({ browser }, testInfo) => {
-    const context = await browser.newContext()
-    page = await context.newPage()
+    await expect(page).toHaveTitle(/Payload/)
+
+    const loginForm = page.locator('form')
+    await expect(loginForm).toBeVisible()
   })
 
-  test('can go on homepage', async ({ page }) => {
-    await page.goto('http://127.0.0.1:3000')
+  test('SSO login button is visible', async ({ page }) => {
+    await page.goto('http://127.0.0.1:3000/admin')
 
-    await expect(page).toHaveTitle(/Payload Website Template/)
-
-    const heading = page.locator('h1').first()
-
-    await expect(heading).toHaveText('Payload Website Template')
+    const ssoButton = page.getByRole('link', { name: /SSO/i })
+    await expect(ssoButton).toBeVisible()
   })
 })
