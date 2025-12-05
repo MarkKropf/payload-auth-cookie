@@ -200,11 +200,14 @@ describe('verifyJWTSession', () => {
       },
     })
 
-    const result = await verifyJWTSession(token, {
-      secret,
-      emailField: 'user.email',
-      firstNameField: 'user.profile.firstName',
-    })
+    const result = await verifyJWTSession(
+      token,
+      { secret },
+      {
+        emailField: 'user.email',
+        firstNameField: 'user.profile.firstName',
+      },
+    )
 
     expect(result).not.toBeNull()
     expect(result?.email).toBe('nested@example.com')

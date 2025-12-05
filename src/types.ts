@@ -1,6 +1,55 @@
 import type { Config } from 'payload'
 
 /**
+ * Field mapping configuration for extracting user data from SSO responses
+ */
+export interface FieldMappingConfig {
+  /**
+   * Field path to extract the email from
+   * @default 'email'
+   * @example 'user.email' for nested paths
+   */
+  emailField?: string
+
+  /**
+   * Field path to extract a combined name from (e.g., "John Doe")
+   * Use this instead of firstNameField/lastNameField when SSO returns a single name
+   * @example 'name' or 'displayName'
+   */
+  nameField?: string
+
+  /**
+   * Field path to extract the first name from
+   * @default 'firstName'
+   */
+  firstNameField?: string
+
+  /**
+   * Field path to extract the last name from
+   * @default 'lastName'
+   */
+  lastNameField?: string
+
+  /**
+   * Field path to extract the profile picture URL from
+   * @default 'profilePictureUrl'
+   */
+  profilePictureUrlField?: string
+
+  /**
+   * Field path to extract the email verified status from
+   * @default 'emailVerified'
+   */
+  emailVerifiedField?: string
+
+  /**
+   * Field path to extract the last login timestamp from
+   * @default 'lastLoginAt'
+   */
+  lastLoginAtField?: string
+}
+
+/**
  * JWT verification configuration for validating SSO cookies as JWTs
  */
 export interface JWTVerificationConfig {
@@ -25,43 +74,6 @@ export interface JWTVerificationConfig {
    * Expected audience (aud claim) - if provided, will be validated
    */
   audience?: string
-
-  /**
-   * Field path in the JWT payload to extract the email from
-   * @default 'email'
-   * @example 'user.email' for nested paths
-   */
-  emailField?: string
-
-  /**
-   * Field path in the JWT payload to extract the first name from
-   * @default 'firstName'
-   */
-  firstNameField?: string
-
-  /**
-   * Field path in the JWT payload to extract the last name from
-   * @default 'lastName'
-   */
-  lastNameField?: string
-
-  /**
-   * Field path in the JWT payload to extract the profile picture URL from
-   * @default 'profilePictureUrl'
-   */
-  profilePictureUrlField?: string
-
-  /**
-   * Field path in the JWT payload to extract the email verified status from
-   * @default 'emailVerified'
-   */
-  emailVerifiedField?: string
-
-  /**
-   * Field path in the JWT payload to extract the last login timestamp from
-   * @default 'lastLoginAt'
-   */
-  lastLoginAtField?: string
 }
 
 /**
@@ -107,6 +119,12 @@ export interface SSOProviderConfig {
    * @default 5000
    */
   timeoutMs?: number
+
+  /**
+   * Field mappings for extracting user data from SSO responses
+   * Used by both JWT and sessionUrl validation paths
+   */
+  fieldMappings?: FieldMappingConfig
 }
 
 /**

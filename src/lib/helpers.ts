@@ -1,4 +1,4 @@
-import type { JWTVerificationConfig, SSOProviderConfig } from '../types.js'
+import type { FieldMappingConfig, JWTVerificationConfig, SSOProviderConfig } from '../types.js'
 
 /**
  * Create an SSO provider configuration from environment variables
@@ -47,6 +47,7 @@ export function createSSOProviderConfig(config: {
   sessionUrl?: string
   jwt?: JWTVerificationConfig
   timeoutMs?: number
+  fieldMappings?: FieldMappingConfig
 }): SSOProviderConfig {
   const isTest = process.env.NODE_ENV === 'test'
 
@@ -77,5 +78,6 @@ export function createSSOProviderConfig(config: {
     sessionUrl: config.sessionUrl,
     jwt: config.jwt,
     timeoutMs: config.timeoutMs,
+    fieldMappings: config.fieldMappings,
   }
 }

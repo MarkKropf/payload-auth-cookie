@@ -1,6 +1,6 @@
 {
   "name": "payload-auth-cookie",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Payload CMS authentication plugin for Cookies from external SSO",
   "author": "Mark Kropf (https://markkropf.com/)",
   "homepage": "https://github.com/MarkKropf/payload-auth-cookie",

@@ -42,6 +42,9 @@ export async function handleSSOLogin(
       const existing = existingUsers.docs[0]
       const updateData: Record<string, unknown> = {}
 
+      if (session.name && typeof session.name === 'string') {
+        updateData.name = session.name
+      }
       if (session.firstName && typeof session.firstName === 'string') {
         updateData.firstName = session.firstName
       }
@@ -75,6 +78,9 @@ export async function handleSSOLogin(
 
       const createData: Record<string, unknown> = { email }
 
+      if (session.name && typeof session.name === 'string') {
+        createData.name = session.name
+      }
       if (session.firstName && typeof session.firstName === 'string') {
         createData.firstName = session.firstName
       }

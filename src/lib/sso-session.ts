@@ -1,11 +1,12 @@
 import { jwtVerify } from 'jose'
-import type { JWTVerificationConfig, SSOProviderConfig } from '../types.js'
+import type { FieldMappingConfig, JWTVerificationConfig, SSOProviderConfig } from '../types.js'
 
 /**
  * Session data returned from the external SSO session validation endpoint
  */
 export interface SSOSessionData {
   email: string
+  name?: string
   firstName?: string
   lastName?: string
   profilePictureUrl?: string
@@ -49,15 +50,70 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
 }
 
 /**
+ * Extract session data from a raw data object using field mappings
+ */
+function extractSessionData(
+  data: Record<string, unknown>,
+  fieldMappings?: FieldMappingConfig,
+): SSOSessionData | null {
+  const emailField = fieldMappings?.emailField || 'email'
+  const nameField = fieldMappings?.nameField
+  const firstNameField = fieldMappings?.firstNameField || 'firstName'
+  const lastNameField = fieldMappings?.lastNameField || 'lastName'
+  const profilePictureUrlField = fieldMappings?.profilePictureUrlField || 'profilePictureUrl'
+  const emailVerifiedField = fieldMappings?.emailVerifiedField || 'emailVerified'
+  const lastLoginAtField = fieldMappings?.lastLoginAtField || 'lastLoginAt'
+
+  const email = getNestedValue(data, emailField)
+  if (typeof email !== 'string' || email.length === 0) {
+    return null
+  }
+
+  const name = nameField ? getNestedValue(data, nameField) : undefined
+  const firstName = getNestedValue(data, firstNameField)
+  const lastName = getNestedValue(data, lastNameField)
+  const profilePictureUrl = getNestedValue(data, profilePictureUrlField)
+  const emailVerified = getNestedValue(data, emailVerifiedField)
+  const lastLoginAt = getNestedValue(data, lastLoginAtField)
+
+  let parsedEmailVerified: boolean | undefined
+  if (typeof emailVerified === 'boolean') {
+    parsedEmailVerified = emailVerified
+  } else if (typeof emailVerified === 'string') {
+    parsedEmailVerified = emailVerified.toLowerCase() === 'true'
+  }
+
+  let parsedLastLoginAt: string | undefined
+  if (typeof lastLoginAt === 'string' && lastLoginAt.length > 0) {
+    parsedLastLoginAt = lastLoginAt
+  } else if (typeof lastLoginAt === 'number') {
+    parsedLastLoginAt = new Date(lastLoginAt * 1000).toISOString()
+  }
+
+  return {
+    email,
+    name: typeof name === 'string' ? name : undefined,
+    firstName: typeof firstName === 'string' ? firstName : undefined,
+    lastName: typeof lastName === 'string' ? lastName : undefined,
+    profilePictureUrl: typeof profilePictureUrl === 'string' ? profilePictureUrl : undefined,
+    emailVerified: parsedEmailVerified,
+    lastLoginAt: parsedLastLoginAt,
+    ...data,
+  }
+}
+
+/**
  * Verify a JWT token and extract session data
  *
  * @param token - The JWT token to verify
  * @param jwtConfig - JWT verification configuration
+ * @param fieldMappings - Field mappings for extracting user data
  * @returns The session data if valid, null if invalid or expired
  */
 export async function verifyJWTSession(
   token: string,
   jwtConfig: JWTVerificationConfig,
+  fieldMappings?: FieldMappingConfig,
 ): Promise<SSOSessionData | null> {
   try {
     const secretKey = new TextEncoder().encode(jwtConfig.secret)
@@ -69,52 +125,7 @@ export async function verifyJWTSession(
       audience: jwtConfig.audience,
     })
 
-    const emailField = jwtConfig.emailField || 'email'
-    const firstNameField = jwtConfig.firstNameField || 'firstName'
-    const lastNameField = jwtConfig.lastNameField || 'lastName'
-    const profilePictureUrlField = jwtConfig.profilePictureUrlField || 'profilePictureUrl'
-    const emailVerifiedField = jwtConfig.emailVerifiedField || 'emailVerified'
-    const lastLoginAtField = jwtConfig.lastLoginAtField || 'lastLoginAt'
-
-    const email = getNestedValue(payload as Record<string, unknown>, emailField)
-    if (typeof email !== 'string' || email.length === 0) {
-      return null
-    }
-
-    const firstName = getNestedValue(payload as Record<string, unknown>, firstNameField)
-    const lastName = getNestedValue(payload as Record<string, unknown>, lastNameField)
-    const profilePictureUrl = getNestedValue(
-      payload as Record<string, unknown>,
-      profilePictureUrlField,
-    )
-    const emailVerified = getNestedValue(payload as Record<string, unknown>, emailVerifiedField)
-    const lastLoginAt = getNestedValue(payload as Record<string, unknown>, lastLoginAtField)
-
-    // Parse emailVerified - accept boolean or string 'true'/'false'
-    let parsedEmailVerified: boolean | undefined
-    if (typeof emailVerified === 'boolean') {
-      parsedEmailVerified = emailVerified
-    } else if (typeof emailVerified === 'string') {
-      parsedEmailVerified = emailVerified.toLowerCase() === 'true'
-    }
-
-    // Parse lastLoginAt - accept string (ISO date) or number (Unix timestamp)
-    let parsedLastLoginAt: string | undefined
-    if (typeof lastLoginAt === 'string' && lastLoginAt.length > 0) {
-      parsedLastLoginAt = lastLoginAt
-    } else if (typeof lastLoginAt === 'number') {
-      parsedLastLoginAt = new Date(lastLoginAt * 1000).toISOString()
-    }
-
-    return {
-      email,
-      firstName: typeof firstName === 'string' ? firstName : undefined,
-      lastName: typeof lastName === 'string' ? lastName : undefined,
-      profilePictureUrl: typeof profilePictureUrl === 'string' ? profilePictureUrl : undefined,
-      emailVerified: parsedEmailVerified,
-      lastLoginAt: parsedLastLoginAt,
-      ...payload,
-    }
+    return extractSessionData(payload as Record<string, unknown>, fieldMappings)
   } catch {
     return null
   }
@@ -162,11 +173,9 @@ export async function fetchSSOSession(
     // 1. { authenticated: true, user: { email, ... } }
     // 2. { user: { email, ... } }
     // 3. { email, ... } (direct user data)
-    if (data.user && typeof data.user === 'object') {
-      return data.user as SSOSessionData
-    }
+    const userData = data.user && typeof data.user === 'object' ? data.user : data
 
-    return data as SSOSessionData
+    return extractSessionData(userData as Record<string, unknown>, config.fieldMappings)
   } catch {
     return null
   } finally {
@@ -189,7 +198,7 @@ export async function validateSSOSession(
   cookieValue: string,
 ): Promise<SSOSessionData | null> {
   if (config.jwt) {
-    return verifyJWTSession(cookieValue, config.jwt)
+    return verifyJWTSession(cookieValue, config.jwt, config.fieldMappings)
   }
 
   return fetchSSOSession(config, cookieValue)

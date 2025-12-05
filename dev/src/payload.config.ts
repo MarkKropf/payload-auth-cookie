@@ -32,6 +32,10 @@ const ssoConfig = createSSOProviderConfig({
     : {
         sessionUrl: process.env.SSO_SESSION_URL || 'http://127.0.0.1:3000/api/session/me',
       }),
+  fieldMappings: {
+    nameField: 'name',
+    profilePictureUrlField: 'profileImageUrl',
+  },
 })
 
 const filename = fileURLToPath(import.meta.url)

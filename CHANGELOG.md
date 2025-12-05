@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2025-12-05
+
+### Added
+
+- **Field mappings configuration**: New `fieldMappings` option in `SSOProviderConfig` to map SSO response fields to plugin-expected fields
+  - `nameField` - Map a combined name field (e.g., `'name'` or `'displayName'`)
+  - `firstNameField` - Map first name field (default: `'firstName'`)
+  - `lastNameField` - Map last name field (default: `'lastName'`)
+  - `profilePictureUrlField` - Map profile picture URL field (default: `'profilePictureUrl'`)
+  - `emailField` - Map email field (default: `'email'`)
+  - `emailVerifiedField` - Map email verified field (default: `'emailVerified'`)
+  - `lastLoginAtField` - Map last login field (default: `'lastLoginAt'`)
+- Added `name` field support in session data and auth handler for SSO providers that return a single combined name
+
+### Fixed
+
+- Fixed field mappings not being applied when using `sessionUrl` validation (only worked with JWT before)
+- Both JWT and sessionUrl validation paths now use the same field extraction logic
+
+### Changed
+
+- Moved field mapping options from `JWTVerificationConfig` to `SSOProviderConfig.fieldMappings` so they apply to both JWT and sessionUrl validation
+- `createSSOProviderConfig` helper now accepts `fieldMappings` parameter
+
 ## [0.0.10] - 2025-12-05
 
 ### Fixed
