@@ -90,13 +90,29 @@ export async function verifyJWTSession(
     const emailVerified = getNestedValue(payload as Record<string, unknown>, emailVerifiedField)
     const lastLoginAt = getNestedValue(payload as Record<string, unknown>, lastLoginAtField)
 
+    // Parse emailVerified - accept boolean or string 'true'/'false'
+    let parsedEmailVerified: boolean | undefined
+    if (typeof emailVerified === 'boolean') {
+      parsedEmailVerified = emailVerified
+    } else if (typeof emailVerified === 'string') {
+      parsedEmailVerified = emailVerified.toLowerCase() === 'true'
+    }
+
+    // Parse lastLoginAt - accept string (ISO date) or number (Unix timestamp)
+    let parsedLastLoginAt: string | undefined
+    if (typeof lastLoginAt === 'string' && lastLoginAt.length > 0) {
+      parsedLastLoginAt = lastLoginAt
+    } else if (typeof lastLoginAt === 'number') {
+      parsedLastLoginAt = new Date(lastLoginAt * 1000).toISOString()
+    }
+
     return {
       email,
       firstName: typeof firstName === 'string' ? firstName : undefined,
       lastName: typeof lastName === 'string' ? lastName : undefined,
       profilePictureUrl: typeof profilePictureUrl === 'string' ? profilePictureUrl : undefined,
-      emailVerified: typeof emailVerified === 'boolean' ? emailVerified : undefined,
-      lastLoginAt: typeof lastLoginAt === 'string' ? lastLoginAt : undefined,
+      emailVerified: parsedEmailVerified,
+      lastLoginAt: parsedLastLoginAt,
       ...payload,
     }
   } catch {

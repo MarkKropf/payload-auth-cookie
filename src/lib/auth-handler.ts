@@ -51,10 +51,10 @@ export async function handleSSOLogin(
       if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
         updateData.profilePictureUrl = session.profilePictureUrl
       }
-      if (typeof session.emailVerified === 'boolean') {
+      if (session.emailVerified !== undefined) {
         updateData.emailVerified = session.emailVerified
       }
-      if (session.lastLoginAt && typeof session.lastLoginAt === 'string') {
+      if (session.lastLoginAt !== undefined) {
         updateData.lastLoginAt = session.lastLoginAt
       }
 
@@ -84,10 +84,10 @@ export async function handleSSOLogin(
       if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
         createData.profilePictureUrl = session.profilePictureUrl
       }
-      if (typeof session.emailVerified === 'boolean') {
+      if (session.emailVerified !== undefined) {
         createData.emailVerified = session.emailVerified
       }
-      if (session.lastLoginAt && typeof session.lastLoginAt === 'string') {
+      if (session.lastLoginAt !== undefined) {
         createData.lastLoginAt = session.lastLoginAt
       }
 
