@@ -137,6 +137,42 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
         }
       },
     },
+
+    // Payload calls /api/{collection}/me on every page load even with disableLocalStrategy: true
+    // This endpoint provides a compatible response to prevent errors
+    {
+      path: `/${config.usersCollectionSlug}/me`,
+      method: 'get',
+      handler: async (req) => {
+        try {
+          if (req.user) {
+            return Response.json({
+              user: req.user,
+              collection: config.usersCollectionSlug,
+              token: null,
+              exp: null,
+            })
+          } else {
+            return Response.json({
+              user: null,
+              collection: config.usersCollectionSlug,
+              token: null,
+              exp: null,
+            })
+          }
+        } catch {
+          return Response.json(
+            {
+              user: null,
+              collection: config.usersCollectionSlug,
+              token: null,
+              exp: null,
+            },
+            { status: 500 },
+          )
+        }
+      },
+    },
   ]
 
   return endpoints
