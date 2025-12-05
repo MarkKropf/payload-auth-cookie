@@ -39,6 +39,24 @@ export function createUsersCollection(
         name: 'profilePictureUrl',
         type: 'text',
       },
+      {
+        name: 'emailVerified',
+        type: 'checkbox',
+        defaultValue: false,
+        admin: {
+          description: 'Whether the email has been verified by the SSO provider',
+        },
+      },
+      {
+        name: 'lastLoginAt',
+        type: 'date',
+        admin: {
+          description: 'Last login timestamp from the SSO provider',
+          date: {
+            pickerAppearance: 'dayAndTime',
+          },
+        },
+      },
     ],
   }
 }

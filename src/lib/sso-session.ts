@@ -9,6 +9,8 @@ export interface SSOSessionData {
   firstName?: string
   lastName?: string
   profilePictureUrl?: string
+  emailVerified?: boolean
+  lastLoginAt?: string
   [key: string]: unknown
 }
 
@@ -71,6 +73,8 @@ export async function verifyJWTSession(
     const firstNameField = jwtConfig.firstNameField || 'firstName'
     const lastNameField = jwtConfig.lastNameField || 'lastName'
     const profilePictureUrlField = jwtConfig.profilePictureUrlField || 'profilePictureUrl'
+    const emailVerifiedField = jwtConfig.emailVerifiedField || 'emailVerified'
+    const lastLoginAtField = jwtConfig.lastLoginAtField || 'lastLoginAt'
 
     const email = getNestedValue(payload as Record<string, unknown>, emailField)
     if (typeof email !== 'string' || email.length === 0) {
@@ -83,12 +87,16 @@ export async function verifyJWTSession(
       payload as Record<string, unknown>,
       profilePictureUrlField,
     )
+    const emailVerified = getNestedValue(payload as Record<string, unknown>, emailVerifiedField)
+    const lastLoginAt = getNestedValue(payload as Record<string, unknown>, lastLoginAtField)
 
     return {
       email,
       firstName: typeof firstName === 'string' ? firstName : undefined,
       lastName: typeof lastName === 'string' ? lastName : undefined,
       profilePictureUrl: typeof profilePictureUrl === 'string' ? profilePictureUrl : undefined,
+      emailVerified: typeof emailVerified === 'boolean' ? emailVerified : undefined,
+      lastLoginAt: typeof lastLoginAt === 'string' ? lastLoginAt : undefined,
       ...payload,
     }
   } catch {

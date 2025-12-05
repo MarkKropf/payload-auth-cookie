@@ -185,6 +185,14 @@ export interface AdminUser {
   firstName?: string | null;
   lastName?: string | null;
   profilePictureUrl?: string | null;
+  /**
+   * Whether the email has been verified by the SSO provider
+   */
+  emailVerified?: boolean | null;
+  /**
+   * Last login timestamp from the SSO provider
+   */
+  lastLoginAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -199,6 +207,14 @@ export interface AppUser {
   firstName?: string | null;
   lastName?: string | null;
   profilePictureUrl?: string | null;
+  /**
+   * Whether the email has been verified by the SSO provider
+   */
+  emailVerified?: boolean | null;
+  /**
+   * Last login timestamp from the SSO provider
+   */
+  lastLoginAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1090,6 +1106,8 @@ export interface AdminUsersSelect<T extends boolean = true> {
   firstName?: T;
   lastName?: T;
   profilePictureUrl?: T;
+  emailVerified?: T;
+  lastLoginAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1103,6 +1121,8 @@ export interface AppUsersSelect<T extends boolean = true> {
   firstName?: T;
   lastName?: T;
   profilePictureUrl?: T;
+  emailVerified?: T;
+  lastLoginAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

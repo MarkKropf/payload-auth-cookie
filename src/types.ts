@@ -50,6 +50,18 @@ export interface JWTVerificationConfig {
    * @default 'profilePictureUrl'
    */
   profilePictureUrlField?: string
+
+  /**
+   * Field path in the JWT payload to extract the email verified status from
+   * @default 'emailVerified'
+   */
+  emailVerifiedField?: string
+
+  /**
+   * Field path in the JWT payload to extract the last login timestamp from
+   * @default 'lastLoginAt'
+   */
+  lastLoginAtField?: string
 }
 
 /**

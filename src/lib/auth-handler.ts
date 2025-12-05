@@ -51,6 +51,12 @@ export async function handleSSOLogin(
       if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
         updateData.profilePictureUrl = session.profilePictureUrl
       }
+      if (typeof session.emailVerified === 'boolean') {
+        updateData.emailVerified = session.emailVerified
+      }
+      if (session.lastLoginAt && typeof session.lastLoginAt === 'string') {
+        updateData.lastLoginAt = session.lastLoginAt
+      }
 
       if (Object.keys(updateData).length > 0) {
         user = (await payload.update({
@@ -77,6 +83,12 @@ export async function handleSSOLogin(
       }
       if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
         createData.profilePictureUrl = session.profilePictureUrl
+      }
+      if (typeof session.emailVerified === 'boolean') {
+        createData.emailVerified = session.emailVerified
+      }
+      if (session.lastLoginAt && typeof session.lastLoginAt === 'string') {
+        createData.lastLoginAt = session.lastLoginAt
       }
 
       user = (await payload.create({
