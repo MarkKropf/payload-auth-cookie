@@ -65,7 +65,11 @@ export function authPlugin(pluginConfig: AuthPluginConfig) {
 
     setAdminAuthCollectionSlug(adminUserSlug)
 
-    const cookieAuthStrategy = createCookieAuthStrategy(config.usersCollectionSlug, config.sso)
+    const cookieAuthStrategy = createCookieAuthStrategy(
+      config.usersCollectionSlug,
+      config.sso,
+      config.allowSignUp,
+    )
 
     if (!existingUserCollection) {
       const userCollection = createUsersCollection(config.usersCollectionSlug, config.useAdmin)

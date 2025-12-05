@@ -2,16 +2,29 @@ import type { Payload } from 'payload'
 import type { SSOProviderConfig } from '../types.js'
 import { parseCookies, validateSSOSession, getEmailFromSession } from './sso-session.js'
 
+export interface CookieAuthStrategyOptions {
+  collectionSlug: string
+  ssoConfig: SSOProviderConfig
+  allowSignUp?: boolean
+}
+
 /**
  * Cookie-based authentication strategy for Payload v3
  *
  * This strategy validates the external SSO cookie directly on each request,
  * completely bypassing Payload's built-in token/session system.
  *
+ * When allowSignUp is true and a user doesn't exist, it will be created automatically.
+ *
  * @param collectionSlug - The slug of the users collection
  * @param ssoConfig - SSO provider configuration for cookie validation
+ * @param allowSignUp - Whether to create new users on first login
  */
-export function createCookieAuthStrategy(collectionSlug: string, ssoConfig: SSOProviderConfig) {
+export function createCookieAuthStrategy(
+  collectionSlug: string,
+  ssoConfig: SSOProviderConfig,
+  allowSignUp?: boolean,
+) {
   return {
     name: 'sso-cookie',
     authenticate: async ({ headers, payload }: { headers: Headers; payload: Payload }) => {
@@ -63,11 +76,37 @@ export function createCookieAuthStrategy(collectionSlug: string, ssoConfig: SSOP
           limit: 1,
         })
 
-        if (!users.docs.length) {
-          return { user: null }
-        }
+        let user = users.docs[0]
 
-        const user = users.docs[0]
+        if (!user) {
+          if (!allowSignUp) {
+            return { user: null }
+          }
+
+          const createData: Record<string, unknown> = { email }
+
+          if (session.firstName && typeof session.firstName === 'string') {
+            createData.firstName = session.firstName
+          }
+          if (session.lastName && typeof session.lastName === 'string') {
+            createData.lastName = session.lastName
+          }
+          if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
+            createData.profilePictureUrl = session.profilePictureUrl
+          }
+          if (session.emailVerified !== undefined) {
+            createData.emailVerified = session.emailVerified
+          }
+          if (session.lastLoginAt !== undefined) {
+            createData.lastLoginAt = session.lastLoginAt
+          }
+
+          user = await payload.create({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic collection slug from config
+            collection: collectionSlug as any,
+            data: createData,
+          })
+        }
 
         return {
           user: {

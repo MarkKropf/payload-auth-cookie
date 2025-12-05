@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2025-12-05
+
+### Fixed
+
+- Fixed auth loop for new users when `allowSignUp: true`
+  - The authentication strategy now creates users on first login, not just the `/auth/login` endpoint
+  - Previously, apps that redirected directly to protected routes after SSO (bypassing `/api/{name}/auth/login`) would loop indefinitely because the strategy only looked up existing users
+
+### Changed
+
+- `createCookieAuthStrategy` now accepts an optional `allowSignUp` parameter
+- User creation logic is now duplicated in both the strategy and `handleSSOLogin` for robustness
+
 ## [0.0.8] - 2025-12-05
 
 ### Fixed
