@@ -268,6 +268,11 @@ The plugin creates the following endpoints (prefixed with your configured `name`
 | `/api/{name}/auth/login` | GET | Initiates login or validates SSO cookie |
 | `/api/{name}/auth/logout` | GET | Clears session and redirects to SSO logout |
 | `/api/{name}/auth/session` | GET | Returns current session status |
+| `/api/users/me` | GET | Returns current user (for Payload admin bar compatibility) |
+
+### Admin Bar Compatibility
+
+The plugin automatically adds a `/api/users/me` endpoint to support the Payload admin bar, which expects this endpoint to exist. This works around an issue where Payload calls `/api/users/me` on every page load even when `disableLocalStrategy: true` is set on the users collection.
 
 ## Helper Functions
 

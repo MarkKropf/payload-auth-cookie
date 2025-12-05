@@ -138,10 +138,10 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
       },
     },
 
-    // Payload calls /api/{collection}/me on every page load even with disableLocalStrategy: true
+    // Payload admin bar calls /api/users/me (hardcoded) on every page load
     // This endpoint provides a compatible response to prevent errors
     {
-      path: `/${config.usersCollectionSlug}/me`,
+      path: '/users/me',
       method: 'get',
       handler: async (req) => {
         try {

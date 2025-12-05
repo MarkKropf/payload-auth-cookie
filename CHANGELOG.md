@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2025-12-05
+
+### Fixed
+
+- Fixed `/users/me` endpoint path - now correctly responds to `/api/users/me` instead of `/api/{collection}/me`
+  - The Payload admin bar hardcodes `users` as the collection slug
+
 ## [0.0.7] - 2025-12-05
 
 ### Added
 
-- Added `/{collection}/me` endpoint to handle Payload's `/api/{collection}/me` calls
+- Added `/users/me` endpoint to handle Payload admin bar's `/api/users/me` calls
   - Supports the stock PayloadCMS AdminBar
   - Returns Payload-compatible response format with `user`, `collection`, `token`, and `exp` fields
 
