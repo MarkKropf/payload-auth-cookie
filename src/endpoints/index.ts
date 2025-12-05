@@ -138,14 +138,20 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
       },
     },
 
-    // Payload admin bar calls /api/users/me (hardcoded) on every page load
-    // This endpoint provides a compatible response to prevent errors
-    {
+  ]
+
+  // Payload admin bar calls /api/users/me (hardcoded) on every page load
+  // This endpoint provides a compatible response to prevent errors
+  // Only add this endpoint when useAdmin is true (for admin panel authentication)
+  // Returns null user info if the logged-in user is from a non-admin collection
+  if (config.useAdmin) {
+    endpoints.push({
       path: '/users/me',
       method: 'get',
       handler: async (req) => {
         try {
-          if (req.user) {
+          const isAdminUser = req.user && req.user.collection === config.usersCollectionSlug
+          if (isAdminUser) {
             return Response.json({
               user: req.user,
               collection: config.usersCollectionSlug,
@@ -172,8 +178,8 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
           )
         }
       },
-    },
-  ]
+    })
+  }
 
   return endpoints
 }

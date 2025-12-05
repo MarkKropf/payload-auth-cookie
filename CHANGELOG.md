@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.10] - 2025-12-05
+
+### Fixed
+
+- Fixed `/api/users/me` endpoint to only return user info for admin collections
+  - Previously returned user info for all authenticated users regardless of collection
+  - Now only returns user info when the logged-in user belongs to a collection with `useAdmin: true`
+  - Non-admin collection users receive `user: null` response, preventing unintended admin panel access
+
 ## [0.0.9] - 2025-12-05
 
 ### Fixed
