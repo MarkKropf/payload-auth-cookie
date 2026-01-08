@@ -214,6 +214,36 @@ describe('verifyJWTSession', () => {
     expect(result?.firstName).toBe('Jane')
   })
 
+  it('should extract name from custom field path', async () => {
+    const token = await createTestJWT({
+      displayName: 'John Doe',
+      email: 'john@example.com',
+    })
+
+    const result = await verifyJWTSession(
+      token,
+      { secret },
+      { nameField: 'displayName' },
+    )
+
+    expect(result).not.toBeNull()
+    expect(result?.name).toBe('John Doe')
+    expect(result?.email).toBe('john@example.com')
+  })
+
+  it('should extract name from default name field', async () => {
+    const token = await createTestJWT({
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+    })
+
+    const result = await verifyJWTSession(token, { secret })
+
+    expect(result).not.toBeNull()
+    expect(result?.name).toBe('Jane Smith')
+    expect(result?.email).toBe('jane@example.com')
+  })
+
   it('should return null for invalid signature', async () => {
     const token = await createTestJWT({ email: 'test@example.com' })
 

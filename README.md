@@ -137,6 +137,40 @@ When your SSO cookie contains a JWT, you can verify it locally without calling a
 | `lastNameField` | `string` | ❌ | `'lastName'` | Field path to extract last name |
 | `profilePictureUrlField` | `string` | ❌ | `'profilePictureUrl'` | Field path to extract profile picture URL |
 
+### Field Mappings
+
+Map SSO response fields to your collection's field names:
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `fieldMappings.nameField` | `string` | ❌ | `'name'` | SSO field containing the user's full name |
+| `fieldMappings.firstNameField` | `string` | ❌ | `'firstName'` | SSO field containing the user's first name |
+| `fieldMappings.lastNameField` | `string` | ❌ | `'lastName'` | SSO field containing the user's last name |
+| `fieldMappings.profilePictureUrlField` | `string` | ❌ | `'profilePictureUrl'` | SSO field containing the profile picture URL |
+| `fieldMappings.emailVerifiedField` | `string` | ❌ | `'emailVerified'` | SSO field indicating email verification status |
+| `fieldMappings.lastLoginAtField` | `string` | ❌ | `'lastLoginAt'` | SSO field containing last login timestamp |
+
+#### Field Mappings Example
+
+```typescript
+authPlugin({
+  name: 'app',
+  usersCollectionSlug: 'appUsers',
+  sso: {
+    cookieName: 'sso_token',
+    loginUrl: 'https://sso.example.com/login',
+    logoutUrl: 'https://sso.example.com/logout',
+    jwt: {
+      secret: process.env.SSO_JWT_SECRET!,
+    },
+    fieldMappings: {
+      nameField: 'full_name',           // Maps SSO's full_name → user.name
+      profilePictureUrlField: 'avatar', // Maps SSO's avatar → user.profilePictureUrl
+    },
+  },
+})
+```
+
 #### JWT Configuration Example
 
 ```typescript
@@ -238,7 +272,7 @@ The JWT payload should contain at least an `email` field (configurable via `emai
 
 ## Multiple Auth Instances
 
-You can configure multiple auth instances for different user types:
+You can configure multiple auth instances for different user types. Each instance creates its own set of endpoints and correctly returns users from its associated collection:
 
 ```typescript
 plugins: [
@@ -258,6 +292,13 @@ plugins: [
   }),
 ]
 ```
+
+With this configuration:
+
+- `/api/admin/auth/session` returns users from `adminUsers` collection
+- `/api/app/auth/session` returns users from `appUsers` collection
+- Each endpoint syncs SSO data to its own collection's user records
+- Authentication strategies are uniquely named (`sso-cookie-adminUsers`, `sso-cookie-appUsers`)
 
 ## API Endpoints
 

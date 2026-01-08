@@ -1,7 +1,7 @@
 import type { Endpoint, PayloadRequest } from 'payload'
 import type { AuthPluginConfig } from '../types.js'
 import { handleSSOLogin } from '../lib/auth-handler.js'
-import { parseCookies, validateSSOSession } from '../lib/sso-session.js'
+import { parseCookies, validateSSOSession, getEmailFromSession } from '../lib/sso-session.js'
 
 /**
  * Get the base URL from the request
@@ -117,21 +117,82 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
       method: 'get',
       handler: async (req) => {
         try {
-          if (req.user) {
-            return Response.json({
-              user: req.user,
-              authenticated: true,
-            })
-          } else {
-            return Response.json({
-              authenticated: false,
+          // Explicitly authenticate against THIS endpoint's collection
+          // This ensures multi-auth setups return the correct collection's user
+          const cookies = parseCookies(req.headers)
+          const ssoCookie = cookies[config.sso.cookieName]
+
+          if (!ssoCookie) {
+            return Response.json({ authenticated: false })
+          }
+
+          const session = await validateSSOSession(config.sso, ssoCookie)
+          if (!session) {
+            return Response.json({ authenticated: false })
+          }
+
+          const email = getEmailFromSession(session)
+          if (!email) {
+            return Response.json({ authenticated: false })
+          }
+
+          // Query THIS endpoint's collection specifically
+          const users = await req.payload.find({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic collection slug from config
+            collection: config.usersCollectionSlug as any,
+            where: { email: { equals: email } },
+            limit: 1,
+          })
+
+          let user = users.docs[0]
+          if (!user) {
+            return Response.json({ authenticated: false })
+          }
+
+          // Sync SSO data to this collection's user record
+          // This ensures field mappings are applied even when the global strategy
+          // authenticated a different collection first
+          const updateData: Record<string, unknown> = {}
+
+          if (session.name && typeof session.name === 'string') {
+            updateData.name = session.name
+          }
+          if (session.firstName && typeof session.firstName === 'string') {
+            updateData.firstName = session.firstName
+          }
+          if (session.lastName && typeof session.lastName === 'string') {
+            updateData.lastName = session.lastName
+          }
+          if (session.profilePictureUrl && typeof session.profilePictureUrl === 'string') {
+            updateData.profilePictureUrl = session.profilePictureUrl
+          }
+          if (session.emailVerified !== undefined) {
+            updateData.emailVerified = session.emailVerified
+          }
+          if (session.lastLoginAt !== undefined) {
+            updateData.lastLoginAt = session.lastLoginAt
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            user = await req.payload.update({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic collection slug from config
+              collection: config.usersCollectionSlug as any,
+              id: user.id,
+              data: updateData,
             })
           }
+
+          return Response.json({
+            user: {
+              ...user,
+              _strategy: 'sso-cookie',
+              collection: config.usersCollectionSlug,
+            },
+            authenticated: true,
+          })
         } catch {
           return Response.json(
-            {
-              error: 'Failed to check session',
-            },
+            { error: 'Failed to check session' },
             { status: 500 },
           )
         }

@@ -2,189 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.0.11] - 2025-12-05
-
-### Added
-
-- **Field mappings configuration**: New `fieldMappings` option in `SSOProviderConfig` to map SSO response fields to plugin-expected fields
-  - `nameField` - Map a combined name field (e.g., `'name'` or `'displayName'`)
-  - `firstNameField` - Map first name field (default: `'firstName'`)
-  - `lastNameField` - Map last name field (default: `'lastName'`)
-  - `profilePictureUrlField` - Map profile picture URL field (default: `'profilePictureUrl'`)
-  - `emailField` - Map email field (default: `'email'`)
-  - `emailVerifiedField` - Map email verified field (default: `'emailVerified'`)
-  - `lastLoginAtField` - Map last login field (default: `'lastLoginAt'`)
-- Added `name` field support in session data and auth handler for SSO providers that return a single combined name
+## [0.0.12] - 2026-01-08
 
 ### Fixed
 
-- Fixed field mappings not being applied when using `sessionUrl` validation (only worked with JWT before)
-- Both JWT and sessionUrl validation paths now use the same field extraction logic
+- **Multi-collection authentication**: Session endpoints now correctly return users from their own collection instead of the first-matched collection. Previously, when multiple `authPlugin` instances were configured (e.g., `adminUsers` + `appUsers`), calling `/api/app/auth/session` could incorrectly return users from `adminUsers`.
+
+- **Field mappings for non-primary collections**: SSO data (name, firstName, lastName, profilePictureUrl, emailVerified, lastLoginAt) is now properly synced to all collection user records via their respective session endpoints, not just the first collection's users.
 
 ### Changed
 
-- Moved field mapping options from `JWTVerificationConfig` to `SSOProviderConfig.fieldMappings` so they apply to both JWT and sessionUrl validation
-- `createSSOProviderConfig` helper now accepts `fieldMappings` parameter
+- Authentication strategy names are now unique per collection (`sso-cookie-${collectionSlug}`) instead of the generic `sso-cookie`. This improves debugging and prevents strategy conflicts in multi-collection setups.
 
-## [0.0.10] - 2025-12-05
+- Updated minimum Node.js requirement to `>=22.0.0` for compatibility with latest dependencies.
 
-### Fixed
+## [0.0.11] - Previous Release
 
-- Fixed `/api/users/me` endpoint to only return user info for admin collections
-  - Previously returned user info for all authenticated users regardless of collection
-  - Now only returns user info when the logged-in user belongs to a collection with `useAdmin: true`
-  - Non-admin collection users receive `user: null` response, preventing unintended admin panel access
+- Added `fieldMappings` to `SSOProviderConfig` for mapping SSO response fields to user collection fields.
 
-## [0.0.9] - 2025-12-05
+## [0.0.10] and earlier
 
-### Fixed
-
-- Fixed auth loop for new users when `allowSignUp: true`
-  - The authentication strategy now creates users on first login, not just the `/auth/login` endpoint
-  - Previously, apps that redirected directly to protected routes after SSO (bypassing `/api/{name}/auth/login`) would loop indefinitely because the strategy only looked up existing users
-
-### Changed
-
-- `createCookieAuthStrategy` now accepts an optional `allowSignUp` parameter
-- User creation logic is now duplicated in both the strategy and `handleSSOLogin` for robustness
-
-## [0.0.8] - 2025-12-05
-
-### Fixed
-
-- Fixed `/users/me` endpoint path - now correctly responds to `/api/users/me` instead of `/api/{collection}/me`
-  - The Payload admin bar hardcodes `users` as the collection slug
-
-## [0.0.7] - 2025-12-05
-
-### Added
-
-- Added `/users/me` endpoint to handle Payload admin bar's `/api/users/me` calls
-  - Supports the stock PayloadCMS AdminBar
-  - Returns Payload-compatible response format with `user`, `collection`, `token`, and `exp` fields
-
-## [0.0.6] - 2025-12-05
-
-### Fixed
-
-- Fixed `emailVerified` and `lastLoginAt` fields not updating on subsequent logins
-- Improved parsing of SSO session fields:
-  - `emailVerified` now accepts boolean or string `"true"`/`"false"`
-  - `lastLoginAt` now accepts ISO date strings or Unix timestamps (numbers)
-
-## [0.0.5] - 2025-12-05
-
-### Added
-
-- **SSO session fields**: Added support for `emailVerified` and `lastLoginAt` fields from SSO session data
-- New JWT config options:
-  - `emailVerifiedField` - Field path to extract email verification status (default: `'emailVerified'`)
-  - `lastLoginAtField` - Field path to extract last login timestamp (default: `'lastLoginAt'`)
-- New collection fields in `createUsersCollection`:
-  - `emailVerified` (checkbox) - Whether the email has been verified by the SSO provider
-  - `lastLoginAt` (date) - Last login timestamp from the SSO provider
-
-## [0.0.4] - 2025-12-04
-
-### Fixed
-
-- Patched CVE-2025-55182 - React RSC & Next.js
-
-## [0.0.3] - 2025-12-02
-
-### Added
-
-- **Auto-inject admin UI components**: When `useAdmin: true`, the plugin now automatically injects login and logout components into the admin panel, eliminating the need for manual component configuration
-- New `autoInjectAdminUI` config option (defaults to `true`) - set to `false` to provide custom components
-- New internal components:
-  - `DefaultSSOLoginButton` - Auto-configured SSO login button for admin panel
-  - `DefaultSSOLogoutRedirect` - Auto-configured logout redirect component
-- New package exports:
-  - `payload-auth-cookie/admin/DefaultSSOLoginButton`
-  - `payload-auth-cookie/admin/DefaultSSOLogoutRedirect`
-
-### Changed
-
-- Plugin now automatically configures `admin.components.afterLogin` and `admin.components.views.logout` when `useAdmin: true`
-- Components dynamically compute API routes using Payload's `useConfig()` hook
-
-### Migration
-
-Users upgrading from 0.0.2 can remove manual admin component configuration:
-
-```diff
-// payload.config.ts
-export default buildConfig({
-  admin: {
-    components: {
--     afterLogin: ['@/components/SSOLoginButton'],
--     views: {
--       logout: {
--         Component: '@/components/SSOAdminLogout',
--         path: '/logout',
--       },
--     },
-    },
-  },
-  plugins: [
-    authPlugin({
-      name: 'admin',
-      useAdmin: true,
-+     // Login/logout components are now auto-injected!
-      usersCollectionSlug: 'adminUsers',
-      sso: ssoConfig,
-    }),
-  ],
-})
-```
-
-To keep using custom components, set `autoInjectAdminUI: false`.
-
-## [0.0.2] - 2025-12-02
-
-- First github action released package
-- Added github registry in addition to npmjs
-
-## [0.0.1] - 2025-12-02
-
-### Added
-
-- Initial release of `payload-auth-cookie`
-- Cookie-based SSO authentication for Payload CMS v3
-- Support for external SSO session validation via configurable session URL
-- JWT verification for SSO cookies with configurable claims mapping
-- Support for both admin panel and frontend authentication
-- Automatic user creation with configurable sign-up policy (`allowSignUp`)
-- Multiple auth instance support for different user types (admin, app users)
-- Authentication endpoints:
-  - `GET /{name}/auth/login` - Initiates login or validates SSO cookie
-  - `GET /{name}/auth/logout` - Clears session and redirects to SSO logout
-  - `GET /{name}/auth/session` - Returns current session status
-- Client components:
-  - `LoginButton` - Customizable SSO login button
-  - `AuthProvider` / `useAuth` - React context for auth state management
-- Helper functions:
-  - `createSSOProviderConfig` - Create SSO config from environment variables
-  - `withUsersCollection` - Configure collections for SSO user management
-  - `validateSSOSession` - Validate SSO sessions (JWT or URL-based)
-  - `verifyJWTSession` - Verify and decode JWT tokens
-  - `fetchSSOSession` - Fetch session from external API
-  - `parseCookies` - Parse cookies from request headers
-- Full TypeScript support with exported types
-- Comprehensive test suite (unit tests with Vitest)
-
-### Features
-
-- **Flexible Session Validation**: Choose between JWT verification (local, no API call) or session URL validation (external API call)
-- **Nested JWT Claims**: Support for dot-notation field paths (e.g., `user.email`) for JWT claim extraction
-- **Custom Callbacks**: `onSuccess` and `onError` hooks for custom authentication logic
-- **Cookie Configuration**: Respects Payload's cookie configuration (secure, sameSite, domain)
-- **Profile Sync**: Automatically updates user profile fields (firstName, lastName, profilePictureUrl) from SSO session data
-
-### Compatibility
-
-- Payload CMS ^3.64.0
-- Node.js ^18.20.2 || >=20.9.0
+- Initial releases with core SSO cookie authentication functionality.
