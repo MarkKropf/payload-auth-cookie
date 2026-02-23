@@ -31,6 +31,7 @@ describe('handleSSOLogin', () => {
       collection: 'users',
       where: { email: { equals: 'test@example.com' } },
       limit: 1,
+      overrideAccess: true,
     })
   })
 
@@ -68,6 +69,7 @@ describe('handleSSOLogin', () => {
       collection: 'users',
       id: '123',
       data: { firstName: 'John', lastName: 'Doe' },
+      overrideAccess: true,
     })
   })
 
@@ -100,6 +102,7 @@ describe('handleSSOLogin', () => {
     expect(mockPayload.create).toHaveBeenCalledWith({
       collection: 'users',
       data: { email: 'new@example.com', firstName: 'New' },
+      overrideAccess: true,
     })
   })
 
