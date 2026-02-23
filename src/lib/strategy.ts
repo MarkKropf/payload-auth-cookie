@@ -74,6 +74,7 @@ export function createCookieAuthStrategy(
             },
           },
           limit: 1,
+          overrideAccess: true,
         })
 
         let user = users.docs[0]
@@ -107,6 +108,7 @@ export function createCookieAuthStrategy(
               collection: collectionSlug as any,
               id: user.id,
               data: updateData,
+              overrideAccess: true,
             })
           }
         } else {
@@ -139,6 +141,7 @@ export function createCookieAuthStrategy(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic collection slug from config
             collection: collectionSlug as any,
             data: createData,
+            overrideAccess: true,
           })
         }
 
@@ -150,7 +153,10 @@ export function createCookieAuthStrategy(
             collection: collectionSlug as any,
           },
         }
-      } catch {
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`[payload-auth-cookie] Strategy error for ${collectionSlug}:`, error)
+        }
         return { user: null }
       }
     },

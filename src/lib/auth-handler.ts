@@ -34,6 +34,7 @@ export async function handleSSOLogin(
         },
       },
       limit: 1,
+      overrideAccess: true,
     })
 
     let user: Record<string, unknown> & { id: string | number }
@@ -67,6 +68,7 @@ export async function handleSSOLogin(
           collection: config.usersCollectionSlug as any,
           id: existing.id,
           data: updateData,
+          overrideAccess: true,
         })) as Record<string, unknown> & { id: string | number }
       } else {
         user = existing as Record<string, unknown> & { id: string | number }
@@ -101,6 +103,7 @@ export async function handleSSOLogin(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic collection slug from config
         collection: config.usersCollectionSlug as any,
         data: createData,
+        overrideAccess: true,
       })) as Record<string, unknown> & { id: string | number }
     }
 
