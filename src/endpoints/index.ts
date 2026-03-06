@@ -190,7 +190,8 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
             },
             authenticated: true,
           })
-        } catch {
+        } catch (error) {
+          console.error(`[payload-auth-cookie] Session check error for ${namespace}:`, error)
           return Response.json(
             { error: 'Failed to check session' },
             { status: 500 },
@@ -227,7 +228,8 @@ export function createAuthEndpoints(config: AuthPluginConfig, apiPrefix: string 
               exp: null,
             })
           }
-        } catch {
+        } catch (error) {
+          console.error(`[payload-auth-cookie] /users/me error for ${namespace}:`, error)
           return Response.json(
             {
               user: null,

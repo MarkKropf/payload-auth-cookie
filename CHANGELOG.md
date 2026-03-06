@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.14] - 2026-03-06
+
+### Changed
+
+- Bump Payload CMS and related dependencies from 3.70.0 to 3.79.0.
+- Error logging in authentication strategy and endpoints now runs in all environments, not just development.
+
 ## [0.0.12] - 2026-01-08
 
 ### Fixed

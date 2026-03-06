@@ -154,9 +154,7 @@ export function createCookieAuthStrategy(
           },
         }
       } catch (error) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error(`[payload-auth-cookie] Strategy error for ${collectionSlug}:`, error)
-        }
+        console.error(`[payload-auth-cookie] Strategy error for ${collectionSlug}:`, error)
         return { user: null }
       }
     },
